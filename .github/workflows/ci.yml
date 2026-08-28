@@ -1,0 +1,29 @@
+name: CI
+
+# Release PR 模型：push dev_* → verify + 自动开 PR；PR → master 上跑 qodana + OCR，全绿 auto-merge。
+# 前置：Org Secret GHA_TOKEN（PAT repo），caller secrets: inherit
+on:
+  push:
+    branches: ["dev_*"]
+  pull_request:
+    branches: ["master"]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release-pr:
+    permissions:
+      contents: write
+      packages: read
+      pull-requests: write
+      issues: write
+      actions: write
+      checks: read
+    uses: workers-world/worker-actions/.github/workflows/worker-ci.yml@actions/v0.1.0
+    secrets: inherit
+    with:
+      materialize_sdk: false
+      sync_packages_lock: true
