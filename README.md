@@ -1,8 +1,8 @@
 # MOK1
 
-**worker-actions 冒烟靶** — 公开仓，非业务产品。
+**worker-actions 冒烟靶**
 
-最小 hello-world Worker：`GET /health` → `{ "ok": true, "worker": "MOK1" }`。用于验证 [worker-actions](https://github.com/workers-world/worker-actions) Release PR 全链路：
+最小 hello-world Worker：`GET /health` → `{ "ok": true, "worker": "mok1" }`。用于验证 [worker-actions](https://github.com/workers-world/worker-actions) Release PR 全链路：
 
 - workflow-lint / verify（lint + tsc + test）
 - sync-packages-lock
@@ -32,7 +32,3 @@ npm test
 
 开发轨：`dev_00_01_00` → Release PR → `master`。
 
-## 注意
-
-- 勿在此仓写生产域名、密钥或 Org 内部手册
-- Agent / CI 不自动 `wrangler deploy`；可选接 CF Builds 连 `master`
