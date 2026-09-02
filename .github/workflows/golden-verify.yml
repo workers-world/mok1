@@ -1,0 +1,42 @@
+name: SDK Golden Verify
+
+# framework_sdk_worker publish 后触发，或手动 workflow_dispatch 复现。
+on:
+  workflow_dispatch:
+    inputs:
+      sdk_version:
+        description: '@workers-world/framework_sdk_worker 版本'
+        required: true
+        default: '0.4.2'
+        type: string
+  repository_dispatch:
+    types: [sdk-published]
+
+jobs:
+  golden:
+    runs-on: ${{ vars.GHA_RUNNER != '' && vars.GHA_RUNNER || 'ubuntu-latest' }}
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          registry-url: https://npm.pkg.github.com
+          scope: '@workers-world'
+
+      - name: Pin SDK version
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SDK_VERSION: ${{ github.event.inputs.sdk_version || github.event.client_payload.version }}
+        run: |
+          set -euo pipefail
+          VERSION="${SDK_VERSION:-0.4.2}"
+          echo "Using framework_sdk_worker@${VERSION}"
+          npm pkg set "dependencies.framework_sdk_worker=npm:@workers-world/framework_sdk_worker@${VERSION}"
+
+      - run: npm ci
+      - run: npm run test:golden
