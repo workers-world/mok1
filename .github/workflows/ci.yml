@@ -25,5 +25,5 @@ jobs:
     uses: workers-world/worker-actions/.github/workflows/worker-ci.yml@actions/v0.1.2
     secrets: inherit
     with:
-      materialize_sdk: false
+      materialize_sdk: true
       sync_packages_lock: true

@@ -1,0 +1,24 @@
+# SDK 消费契约黄金案例注册表（mok1/test/golden）
+# SDK publish 后 sdk-golden-verify 跑 test/golden/**/*.test.ts
+cases:
+  - id: llm-gateway.callAiModel-binding
+    worker: llm-gateway-worker
+    sdk_modules: [ai/gateway]
+    file: llm-gateway/callAiModel-binding.test.ts
+    source: llm-gateway-worker/src/services/ai.ts
+    incident: "2026-09-02 #options detached ai.run"
+    priority: P0
+
+  - id: email-rule.llm-circuit-skip
+    worker: email-rule-worker
+    sdk_modules: [resilience/circuit-breaker, ai/client]
+    file: email-rule/llm-circuit-skip.test.ts
+    source: email-rule-worker/src/services/summarize.ts
+    priority: P1
+
+  - id: invest-rss.chat-invest-client
+    worker: invest-rss-worker
+    sdk_modules: [ai/client]
+    file: invest-rss/chat-invest-client.test.ts
+    source: invest-rss-worker LLM enrichment
+    priority: P1
