@@ -1,5 +1,6 @@
 # Planning 发版 workflow（由 deploy-tracker Sequence dispatch）
 # 冒烟试点：mok1（无 build 步骤，直接 versions upload/deploy）
+# deploy/upload：用 org 级 secret DEPLOY_ADMIN_TOKEN 向平台 resolve，不信任 inputs.version_tag
 name: Planning Release
 
 on:
@@ -13,17 +14,20 @@ on:
           - upload
           - deploy
       git_ref:
-        description: checkout 分支或 tag
+        description: 兼容旧 dispatch；deploy 时被 resolve 的 tag 覆盖
         required: true
       version_tag:
-        description: wrangler version tag（可选）
+        description: 已弃用（不信任）；保留兼容
         required: false
       cf_version_id:
-        description: deploy 模式 CF version_id
+        description: 兼容旧 dispatch；deploy 时以 resolve 为准
         required: false
       planning_step_id:
         required: false
       planning_version_id:
+        required: false
+      planning_repo_key:
+        description: 迭代内 repo_key（resolve 必填）
         required: false
 
 concurrency:
@@ -35,10 +39,40 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      DEPLOY_TRACKER_BASE: https://deploy.mailworld.uk
     steps:
+      - name: Resolve release from platform
+        id: resolve
+        env:
+          DEPLOY_ADMIN_TOKEN: ${{ secrets.DEPLOY_ADMIN_TOKEN }}
+        run: |
+          set -euo pipefail
+          MODE="${{ inputs.mode }}"
+          VERSION_ID="${{ inputs.planning_version_id }}"
+          REPO_KEY="${{ inputs.planning_repo_key }}"
+          if [ -z "$REPO_KEY" ]; then
+            REPO_KEY="${GITHUB_REPOSITORY##*/}"
+          fi
+          if [ -z "${DEPLOY_ADMIN_TOKEN:-}" ]; then
+            echo "DEPLOY_ADMIN_TOKEN 未配置（请在 org Actions secrets 设置）" >&2
+            exit 1
+          fi
+          if [ -z "$VERSION_ID" ]; then
+            echo "planning_version_id 必填" >&2
+            exit 1
+          fi
+          URL="${DEPLOY_TRACKER_BASE}/v1/planning/gha/resolve-release?version_id=$(printf %s "$VERSION_ID" | jq -sRr @uri)&repo_key=$(printf %s "$REPO_KEY" | jq -sRr @uri)&mode=$(printf %s "$MODE" | jq -sRr @uri)"
+          RESP=$(curl -fsS -H "Authorization: Bearer ${DEPLOY_ADMIN_TOKEN}" "$URL")
+          echo "$RESP" | jq .
+          echo "checkout_ref=$(echo "$RESP" | jq -r '.checkout_ref')" >> "$GITHUB_OUTPUT"
+          echo "tag_name=$(echo "$RESP" | jq -r '.tag_name // empty')" >> "$GITHUB_OUTPUT"
+          echo "cf_version_id=$(echo "$RESP" | jq -r '.cf_version_id // empty')" >> "$GITHUB_OUTPUT"
+          echo "sha=$(echo "$RESP" | jq -r '.sha // empty')" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.git_ref }}
+          ref: ${{ steps.resolve.outputs.checkout_ref }}
 
       - uses: actions/setup-node@v4
         with:
@@ -53,7 +87,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: versions upload --tag ${{ inputs.version_tag || github.sha }}
+          command: versions upload --tag ${{ github.sha }}
 
       - name: Versions deploy (production)
         if: inputs.mode == 'deploy'
@@ -61,12 +95,14 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: versions deploy ${{ inputs.cf_version_id }}@100% -y
+          command: versions deploy ${{ steps.resolve.outputs.cf_version_id }}@100% -y
 
       - name: Summary
         run: |
           echo "### Planning Release (mok1)" >> "$GITHUB_STEP_SUMMARY"
           echo "- mode: ${{ inputs.mode }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- ref: ${{ inputs.git_ref }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- checkout: ${{ steps.resolve.outputs.checkout_ref }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- tag: ${{ steps.resolve.outputs.tag_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- cf_version: ${{ steps.resolve.outputs.cf_version_id }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- step: ${{ inputs.planning_step_id }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- version: ${{ inputs.planning_version_id }}" >> "$GITHUB_STEP_SUMMARY"
