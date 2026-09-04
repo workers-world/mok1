@@ -1,0 +1,72 @@
+# Planning 发版 workflow（由 deploy-tracker Sequence dispatch）
+# 冒烟试点：mok1（无 build 步骤，直接 versions upload/deploy）
+name: Planning Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: upload 或 deploy
+        required: true
+        type: choice
+        options:
+          - upload
+          - deploy
+      git_ref:
+        description: checkout 分支或 tag
+        required: true
+      version_tag:
+        description: wrangler version tag（可选）
+        required: false
+      cf_version_id:
+        description: deploy 模式 CF version_id
+        required: false
+      planning_step_id:
+        required: false
+      planning_version_id:
+        required: false
+
+concurrency:
+  group: planning-release-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  planning-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.git_ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Versions upload (test)
+        if: inputs.mode == 'upload'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: versions upload --tag ${{ inputs.version_tag || github.sha }}
+
+      - name: Versions deploy (production)
+        if: inputs.mode == 'deploy'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: versions deploy ${{ inputs.cf_version_id }}@100% -y
+
+      - name: Summary
+        run: |
+          echo "### Planning Release (mok1)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- mode: ${{ inputs.mode }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- ref: ${{ inputs.git_ref }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- step: ${{ inputs.planning_step_id }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- version: ${{ inputs.planning_version_id }}" >> "$GITHUB_STEP_SUMMARY"
