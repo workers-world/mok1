@@ -29,6 +29,3 @@ npm run test:golden   # 仅黄金案例
 ## 分支
 
 开发轨：`dev_00_01_00` → Release PR → `master`。
-
-
-触发测试文字。
