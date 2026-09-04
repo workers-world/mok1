@@ -1,6 +1,6 @@
 # Planning 发版 workflow（由 deploy-tracker Sequence dispatch）
 # 冒烟试点：mok1（无 build 步骤，直接 versions upload/deploy）
-# deploy 模式：用 DEPLOY_ADMIN_TOKEN 向平台 resolve 定稿 tag，不信任 inputs.version_tag
+# deploy/upload：用 org 级 secret DEPLOY_ADMIN_TOKEN 向平台 resolve，不信任 inputs.version_tag
 name: Planning Release
 
 on:
@@ -55,7 +55,7 @@ jobs:
             REPO_KEY="${GITHUB_REPOSITORY##*/}"
           fi
           if [ -z "${DEPLOY_ADMIN_TOKEN:-}" ]; then
-            echo "DEPLOY_ADMIN_TOKEN secret 未配置" >&2
+            echo "DEPLOY_ADMIN_TOKEN 未配置（请在 org Actions secrets 设置）" >&2
             exit 1
           fi
           if [ -z "$VERSION_ID" ]; then
