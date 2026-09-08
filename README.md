@@ -2,7 +2,7 @@
 
 **worker-actions 冒烟靶 + SDK 黄金案例宿主**
 
-最小 hello-world Worker：`GET /health` → `{ "ok": true, "worker": "mok1" }`。
+最小 hello-world Worker：`GET /health` → `{ "ok": true, "worker": "mok1", "version": "0.0.1" }`。
 
 - **冒烟**：验证 [worker-actions](https://github.com/workers-world/worker-actions) Release PR 全链路
 - **黄金案例**：[`test/golden/`](test/golden/) 按业务 Worker 存放 SDK 消费契约测试；`framework_sdk_worker` publish 后自动触发 [`golden-verify`](.github/workflows/golden-verify.yml)
@@ -30,4 +30,4 @@ npm run test:golden   # 仅黄金案例
 
 开发轨：`dev_00_01_00` → Release PR → `master`。
 
-测试
+`GET /health` 返回 `{ ok, worker, version }`，便于 Release / agent 冒烟核对。
