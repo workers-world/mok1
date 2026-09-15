@@ -6,3 +6,6 @@ coverage/
 .idea
 
 graft/
+
+# Cursor continual-learning 本地状态
+.cursor/hooks/state/
