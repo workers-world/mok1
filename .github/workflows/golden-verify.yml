@@ -7,7 +7,6 @@ on:
       sdk_version:
         description: '@workers-world/framework_sdk_worker 版本'
         required: true
-        default: '0.4.2'
         type: string
   repository_dispatch:
     types: [sdk-published]
@@ -30,13 +29,21 @@ jobs:
 
       - name: Pin SDK version
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SDK_VERSION: ${{ github.event.inputs.sdk_version || github.event.client_payload.version }}
         run: |
           set -euo pipefail
-          VERSION="${SDK_VERSION:-0.4.2}"
-          echo "Using framework_sdk_worker@${VERSION}"
-          npm pkg set "dependencies.framework_sdk_worker=npm:@workers-world/framework_sdk_worker@${VERSION}"
+          if [ -z "${SDK_VERSION}" ]; then
+            echo "::error::缺少 SDK 版本：手动触发须填 sdk_version，repository_dispatch 须带 client_payload.version；拒绝静默回退旧版"
+            exit 1
+          fi
+          echo "Using framework_sdk_worker@${SDK_VERSION}"
+          npm pkg set "dependencies.framework_sdk_worker=npm:@workers-world/framework_sdk_worker@${SDK_VERSION}"
 
-      - run: npm ci
+      # npm pkg set 改了 package.json 后与 lockfile 必不同步，npm ci 会 EUSAGE 失败；
+      # 用 --no-save 安装（按改动后的 package.json 解析、不回写 package.json / package-lock.json）
+      - name: Install deps (pinned SDK)
+        run: npm install --no-save
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - run: npm run test:golden
