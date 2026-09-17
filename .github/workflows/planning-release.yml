@@ -81,6 +81,11 @@ jobs:
 
       - run: npm ci
 
+      # TODO(audit-2026-09-17): 生产 upload 路径的第三方 Action 应按发布 commit SHA pin
+      #   （cloudflare/wrangler-action v3.x 线，如 v3.0.2；勿只跟可移动的 v3 大 tag）。
+      #   审计环境外网不可达，无法在线核实确切 40 位 SHA，勿臆造；人工到
+      #   https://github.com/cloudflare/wrangler-action/releases 确认 v3 线最新 release 后
+      #   改为 uses: cloudflare/wrangler-action@<commit SHA> # v3.x.y
       - name: Versions upload (test)
         if: inputs.mode == 'upload'
         uses: cloudflare/wrangler-action@v3
@@ -89,6 +94,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: versions upload --tag ${{ github.sha }}
 
+      # TODO(audit-2026-09-17): 同上——生产 deploy 路径须按 commit SHA pin wrangler-action
       - name: Versions deploy (production)
         if: inputs.mode == 'deploy'
         uses: cloudflare/wrangler-action@v3
