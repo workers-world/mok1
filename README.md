@@ -26,6 +26,10 @@ npm run test:golden   # 仅黄金案例
 - Variable `GHA_RUNNER`（自托管 runner 标签，可选）
 - Variable `QODANA_ENABLED=true`（启用 Qodana job）
 
+## Worker Previews（Agent 非生产验证）
+
+见 [docs/previews.md](docs/previews.md)。非生产分支 Builds 使用 `npx wrangler preview`；Agent **禁止**生产 `wrangler deploy`。
+
 ## 分支
 
 开发轨：`dev_00_01_00` → Release PR → `master`。
