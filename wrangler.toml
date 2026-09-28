@@ -11,4 +11,17 @@ enabled = true
 enabled = true
 
 # Worker Previews（Wrangler ≥ 4.135）：非生产隔离环境；D1/KV 接入时在此覆盖预发 id
-[previews]
+
+# ...
+[previews.observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
+persist = true
+
+[previews.observability.traces]
+enabled = true
+head_sampling_rate = 1
+persist = true
+# ...
+
