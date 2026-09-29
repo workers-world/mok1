@@ -4,6 +4,9 @@ compatibility_date = "2026-08-04"
 # 生产路由走自定义域；Preview 见 [previews] 与 docs/previews.md
 workers_dev = false
 
+# Source maps: remap uncaught exception stacks in Workers Logs / Tail (WW-26)
+upload_source_maps = true
+
 [observability]
 enabled = true
 
