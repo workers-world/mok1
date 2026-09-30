@@ -4,27 +4,22 @@
 
 ## 要求
 
-- Wrangler **≥ 4.136.0**（仓内 `package.json`；`cf migrate` 要求）+ `cf` CLI / `cf` devDependency
-- Preview 配置以 **`cloudflare.config.ts` 的 `ctx.isPreview` 分支**为准（迁移后不再依赖 `wrangler.toml` 的 `[previews]` 生效路径；`wrangler.toml` 仅对照/回滚保留）
-- **生产 deploy 仍人闸**；非生产由云端出 Preview
+- Wrangler **≥ 4.136.0** + `cf` devDependency；`framework_sdk_worker` **≥ 0.4.30**（门户 bin）
+- Preview 配置以 **`cloudflare.config.ts` 的 `ctx.isPreview`** 为准
+- **生产 deploy 仍人闸**；非生产由云端 Preview
 
 ## Cloudflare Builds（推荐）
 
-对 **非生产分支**（如 `dev_*`）将 Preview / Deploy 命令改为：
+Build command：默认 **`npm ci`**（本仓无单独 build 步）。
 
-```bash
-npx cf previews deploy
-```
+| 轨 | Deploy command |
+|----|----------------|
+| 生产 `master` | **`npm run deploy:remote`** 或 **`npm run deploy:cf`**（alias，含义见 [cf-migrate-mok1.md](cf-migrate-mok1.md)） |
+| 非生产 `dev_*` Preview | **`npm run preview:remote`** |
 
-生产分支 Deploy（若原为 `wrangler deploy`）：
+勿在 Dashboard 写裸 `npx wrangler deploy` / `npx cf deploy`（换 CLI 时只改仓内 `deploy:upload`）。
 
-```bash
-npx cf deploy
-```
-
-勿对 Preview 试点继续使用仅 `wrangler versions upload` 的旧 Version URL（会打生产资源）。
-
-成功后 Builds 会把 Preview URL 附到 PR；Agent 只需 push，再对 `GET {preview}/health` 冒烟（`{ "ok": true, "worker": "mok1" }`）。
+成功后对 `GET {preview}/health` 冒烟（`{ "ok": true, "worker": "mok1" }`）。
 
 ## 自定义域 + Access
 
@@ -34,8 +29,8 @@ Preview 走 `*.previews.mailworld.uk`（或团队约定域）+ Zero Trust Access
 
 ```bash
 npm ci
-npm run preview
-# 或: npx cf previews deploy
+npm run preview:remote
+# 或 npm run deploy:upload -- --dry-run
 ```
 
-仅用于调试 Preview / `isPreview` 配置；ADLC 主路径是 **Workers Builds / GHA 云端**。
+ADLC 主路径仍是 **Workers Builds 云端**。
