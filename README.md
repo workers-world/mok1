@@ -14,7 +14,10 @@ npm ci
 npm run check
 npm test              # health + golden
 npm run test:golden   # 仅黄金案例
+npm run dev           # cf dev
 ```
+
+Wrangler → `cf` 试点迁移说明见 [docs/cf-migrate-mok1.md](docs/cf-migrate-mok1.md)。
 
 ## 黄金案例
 
@@ -28,10 +31,8 @@ npm run test:golden   # 仅黄金案例
 
 ## Worker Previews（Agent 非生产验证）
 
-见 [docs/previews.md](docs/previews.md)。非生产分支 Builds 使用 `npx wrangler preview`；Agent **禁止**生产 `wrangler deploy`。
+见 [docs/previews.md](docs/previews.md)。非生产分支 Builds 使用 `npx cf previews deploy`；Agent **禁止**生产 `cf deploy` / `wrangler deploy`。
 
 ## 分支
 
-开发轨：`dev_00_01_00` → Release PR → `master`。
-
-测试
+开发轨：`dev_00_02_00` → Release PR → `master`。
