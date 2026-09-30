@@ -6,76 +6,43 @@
 
 | 文件 | 迁移后角色 | 谁读 |
 |------|------------|------|
-| **`cloudflare.config.ts`** | **主配置**：Worker 名、入口、`compatibilityDate`、bindings、observability、`workersDev` 等。用 `defineConfig((ctx) => …)`；有 Preview 覆盖时写 `if (ctx.isPreview)` 分支 | `cf dev` / `cf build` / `cf deploy` / `cf previews deploy` |
-| **`wrangler.config.ts`** | **Bundler 侧**：从 toml 迁出的 `uploadSourceMaps`、`minify` 等（mok1 无 Vite 时仍委托 Wrangler esbuild） | `cf` 经 Wrangler bundler 调用时 |
-| **`wrangler.toml`** | **保留不动**：对照 + 回滚；纯 Wrangler 命令（如 `wrangler tail`）仍可能读它。**不是** `cf *` 的权威源 | Wrangler 旧命令；人眼对照 |
-| **`package.json`** | 增加 `cf` devDependency；scripts：`dev`→`cf dev`，`deploy`→`cf deploy`，可选 `preview`→`cf previews deploy` | npm / CI |
-| **`package-lock.json`** | 锁定 `cf` 及传递依赖 | `npm ci` |
-| **`docs/previews.md`**（若有） | Builds / 本地 Preview 命令改为 `cf previews deploy`；说明权威在 `cloudflare.config.ts` 的 `isPreview` | 人 / Agent |
-| **`.cloudflare/`** | `cf` 构建输出（bundle 等）；应 **gitignore**，勿提交 | 本地 / Builds 产物 |
+| **`cloudflare.config.ts`** | **主配置**：Worker 名、入口、`compatibilityDate`、bindings、observability 等；Preview 用 `ctx.isPreview` 分支 | `cf dev` / `cf deploy` / `cf previews deploy` |
+| **`wrangler.config.ts`** | **Bundler 侧**：`uploadSourceMaps` 等 | `cf` 委托 Wrangler bundler 时 |
+| **`wrangler.toml`** | **保留不动**：对照 + 回滚；`wrangler tail` 等仍可能读它 | 非 `cf *` 主路径 |
+| **`package.json` scripts** | 门户见下表；实现 wrangler↔cf 在 `deploy:upload`（SDK bin） | npm / Builds |
+| **`.cloudflare/`** | 构建产物；**gitignore** | 本地 / Builds |
+
+### npm 门户脚本（Builds 接口尽量不变）
+
+| 脚本 | Builds 是否调用 | 作用 |
+|------|-----------------|------|
+| **`deploy:remote`** | **推荐**（生产 Deploy command） | 仓钩子（D1 migrate 等）+ `deploy:upload`；mok1 无钩子时等同 upload |
+| **`preview:remote`** | **推荐**（非生产 Preview） | → `preview:upload` |
+| **`deploy:upload`** | 否 | `workers-deploy-worker`：有 `cloudflare.config.ts` → `cf deploy`，否则 `wrangler deploy` |
+| **`preview:upload`** | 否 | `workers-preview-worker`：→ `cf previews deploy` / `wrangler preview` |
+| **`deploy:cf`** | 可继续用（**alias**） | `npm run deploy:remote`；`:cf` = Cloudflare **部署阶段**，不是 `cf` CLI 名 |
+| **`deploy`** | 否（本地） | mok1：`npm run deploy:remote`；有前端仓：`build && deploy:remote` |
+
+依赖 `framework_sdk_worker` ≥ **0.4.30**（提供 `workers-deploy-worker` / `workers-preview-worker` bin）。
 
 ### `ctx.isPreview` 是什么
 
-`cf` 加载配置时传入的上下文：`true` = 本次是 **Worker Preview**（非生产隔离环境），`false` = 普通 / 生产部署。
-
-原先 toml 里的 `[previews.observability.*]` 等，迁后写进：
-
-```ts
-export default defineConfig((ctx) => {
-  if (ctx.isPreview) {
-    return { worker: { /* Preview 覆盖 */ } };
-  }
-  return { worker: { /* 生产默认 */ } };
-});
-```
+`cf` 加载配置时的上下文：`true` = Worker Preview 环境，`false` = 生产。原 `wrangler.toml` 的 `[previews.*]` 迁到 `cloudflare.config.ts` 的 `if (ctx.isPreview)` 分支。
 
 ## 通用步骤
 
-1. **前置**
-   - 本机已有 `cf` CLI（migrate 仍会在仓内加 `cf` devDependency）
-   - 仓内 `wrangler` ≥ **4.136.0**（不足则先 bump 并**单独 commit**）
-   - `git status` **干净**（有改动先 commit；`cf migrate` 遇脏树会拒绝写文件）
-   - `npm ci`（或等价）装好依赖
-
-2. **预览与执行**
-   ```bash
-   cf migrate --dry-run   # 看将改哪些文件 + follow-up
-   cf migrate
-   ```
-   预期新增/改：`cloudflare.config.ts`、`wrangler.config.ts`、`package.json`、`package-lock.json`；**不改** `wrangler.toml`。
-
-3. **处理 follow-up**
-   - 删掉生成文件顶部的 `throw new Error("Migration incomplete…")` 与已解决的 `TODO(@cloudflare)`
-   - 有 `[previews.*]`：核对 `ctx.isPreview` 分支是否等价
-   - 有 D1/DO/Queue 等：按 dry-run 的 `[required]` 人工核对（mok1 无绑定）
-   - `.gitignore` 加上 `.cloudflare/`（若尚未忽略）
-
-4. **改 scripts 与文档**（migrate **默认不改** scripts）
-   | 脚本 | 建议 |
-   |------|------|
-   | `dev` | `cf dev` |
-   | `deploy` | `cf deploy`（生产仍人闸） |
-   | `preview`（可选） | `cf previews deploy` |
-   - 更新 Preview / README 中的 `wrangler preview` → `cf previews deploy`
-
-5. **本地验证**
-   ```bash
-   npm run check
-   npm test
-   npx cf deploy --dry-run   # 无需凭证，验构建与配置
-   ```
-
-6. **Cloudflare Builds（人操作）**
-   - 非生产分支 Preview：`npx cf previews deploy`
-   - 生产 Deploy（若原为 wrangler）：`npx cf deploy`
-   - 冒烟：`GET {url}/health`
-
-7. **回滚**
-   - 删 `cloudflare.config.ts`、`wrangler.config.ts`；scripts 改回 `wrangler *`；卸 `cf` 依赖
-   - 保留的 `wrangler.toml` 可直接继续用 Wrangler
+1. **前置**：`wrangler` ≥ 4.136.0；git 干净；`npm ci`；本机可选 `cf` CLI
+2. **迁移**：`cf migrate --dry-run` → `cf migrate` → 删 `throw`/TODO，核对 `isPreview`
+3. **门户 scripts**：按上表接 SDK bin；`deploy:cf` 保留为 alias 即可
+4. **验证**：`npm run check`、`npm test`、`npm run deploy:upload -- --dry-run`
+5. **Cloudflare Builds（人操作，一次性）**
+   - Build：不变（mok1 空 / `npm ci`）
+   - Deploy：**`npm run deploy:remote`** 或 **`npm run deploy:cf`**
+   - Preview：**`npm run preview:remote`**
+   - 之后 wrangler→cf **只改仓内实现**，勿再改 Dashboard 裸 `npx wrangler deploy` / `npx cf deploy`
+6. **回滚**：删 `cloudflare.config.ts` / `wrangler.config.ts`；upload 层自动回到 wrangler
 
 ## mok1 本轮结果
 
-- 分支：`dev_00_02_00`；Issue：`#31` / Linear `WW-31`
-- 已迁：无 D1/KV/DO；`[previews.observability.*]` → `ctx.isPreview`；`upload_source_maps` → `wrangler.config.ts`
-- 本地已过：`check` / `test` / `cf deploy --dry-run`
+- 分支：`dev_00_02_00`；`#31` / `WW-31`
+- 门户 + SDK 0.4.30；本地：`check` / `test` / `deploy:upload --dry-run`

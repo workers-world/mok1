@@ -17,7 +17,7 @@ npm run test:golden   # 仅黄金案例
 npm run dev           # cf dev
 ```
 
-Wrangler → `cf` 试点迁移说明见 [docs/cf-migrate-mok1.md](docs/cf-migrate-mok1.md)。
+Wrangler → `cf` 试点与 **Builds 门户脚本**（`deploy:remote` / `preview:remote`）见 [docs/cf-migrate-mok1.md](docs/cf-migrate-mok1.md)。
 
 ## 黄金案例
 
@@ -31,7 +31,7 @@ Wrangler → `cf` 试点迁移说明见 [docs/cf-migrate-mok1.md](docs/cf-migrat
 
 ## Worker Previews（Agent 非生产验证）
 
-见 [docs/previews.md](docs/previews.md)。非生产分支 Builds 使用 `npx cf previews deploy`；Agent **禁止**生产 `cf deploy` / `wrangler deploy`。
+见 [docs/previews.md](docs/previews.md)。Builds 生产 **`npm run deploy:remote`**（或 alias **`deploy:cf`**）；Preview **`npm run preview:remote`**。
 
 ## 分支
 
