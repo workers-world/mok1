@@ -14,6 +14,9 @@ jobs:
   sync:
     permissions: {}
     uses: workers-world/worker-actions/.github/workflows/worker-sync-default-dev-branch.yml@actions/v0.2.5
-    secrets: inherit
+    secrets:
+      GHA_TOKEN: ${{ secrets.GHA_TOKEN }}
+      DEFAULT_BRANCH_BOT_PRIVATE_KEY: ${{ secrets.DEFAULT_BRANCH_BOT_PRIVATE_KEY }}
+      DEFAULT_BRANCH_BOT_APP_ID: ${{ secrets.DEFAULT_BRANCH_BOT_APP_ID }}
     with:
       push_branch: ${{ github.ref_name }}
