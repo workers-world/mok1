@@ -1,7 +1,7 @@
 name: CI
 
 # Release PR 模型：push dev_* → verify + 自动开 PR；PR → master 上跑 qodana + OCR，全绿 auto-merge。
-# 前置：Org Secret GHA_TOKEN（PAT repo），caller secrets: inherit
+# 前置：Org Secret GHA_TOKEN（PAT repo）；向 worker-ci 显式传递其 nested 链消费的最小 secret 集
 on:
   push:
     branches: ["dev_*"]
@@ -22,8 +22,18 @@ jobs:
       issues: write
       actions: write
       checks: read
-    uses: workers-world/worker-actions/.github/workflows/worker-ci.yml@actions/v0.1.2
-    secrets: inherit
+    uses: workers-world/worker-actions/.github/workflows/worker-ci.yml@actions/v0.2.6
+    secrets:
+      GHA_TOKEN: ${{ secrets.GHA_TOKEN }}
+      RELEASE_BOT_PRIVATE_KEY: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+      RELEASE_BOT_APP_ID: ${{ secrets.RELEASE_BOT_APP_ID }}
+      QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
+      OCR_LLM_TOKEN: ${{ secrets.OCR_LLM_TOKEN }}
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      OCR_LLM_URL: ${{ secrets.OCR_LLM_URL }}
+      OCR_LLM_MODEL: ${{ secrets.OCR_LLM_MODEL }}
+      OCR_LLM_EXTRA_HEADERS: ${{ secrets.OCR_LLM_EXTRA_HEADERS }}
+      NOTIFY_GHA_TOKEN: ${{ secrets.NOTIFY_GHA_TOKEN }}
     with:
       materialize_sdk: true
       sync_packages_lock: true

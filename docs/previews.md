@@ -4,16 +4,22 @@
 
 ## 要求
 
-- Wrangler **≥ 4.135.0**（仓内 `package.json` devDependency）
-- `wrangler.toml` 含 `[previews]`（绑定预发资源；mok1 无 D1/KV 时块可为空占位）
+- Wrangler **≥ 4.136.0**（仓内 `package.json`；`cf migrate` 要求）+ `cf` CLI / `cf` devDependency
+- Preview 配置以 **`cloudflare.config.ts` 的 `ctx.isPreview` 分支**为准（迁移后不再依赖 `wrangler.toml` 的 `[previews]` 生效路径；`wrangler.toml` 仅对照/回滚保留）
 - **生产 deploy 仍人闸**；非生产由云端出 Preview
 
 ## Cloudflare Builds（推荐）
 
-对 **非生产分支**（如 `dev_*`）将 Deploy 命令改为：
+对 **非生产分支**（如 `dev_*`）将 Preview / Deploy 命令改为：
 
 ```bash
-npx wrangler preview
+npx cf previews deploy
+```
+
+生产分支 Deploy（若原为 `wrangler deploy`）：
+
+```bash
+npx cf deploy
 ```
 
 勿对 Preview 试点继续使用仅 `wrangler versions upload` 的旧 Version URL（会打生产资源）。
@@ -28,7 +34,8 @@ Preview 走 `*.previews.mailworld.uk`（或团队约定域）+ Zero Trust Access
 
 ```bash
 npm ci
-npx wrangler preview
+npm run preview
+# 或: npx cf previews deploy
 ```
 
-仅用于调试 `previews` 配置；ADLC 主路径是 **Workers Builds / GHA 云端**。
+仅用于调试 Preview / `isPreview` 配置；ADLC 主路径是 **Workers Builds / GHA 云端**。
