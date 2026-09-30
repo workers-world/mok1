@@ -22,7 +22,7 @@ jobs:
       issues: write
       actions: write
       checks: read
-    uses: workers-world/worker-actions/.github/workflows/worker-ci.yml@actions/v0.2.4
+    uses: workers-world/worker-actions/.github/workflows/worker-ci.yml@actions/v0.2.5
     secrets: inherit
     with:
       materialize_sdk: true
