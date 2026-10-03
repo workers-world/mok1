@@ -6,6 +6,7 @@
 
 - **冒烟**：验证 [worker-actions](https://github.com/workers-world/worker-actions) Release PR 全链路
 - **黄金案例**：[`test/golden/`](test/golden/) 按业务 Worker 存放 SDK 消费契约测试；`framework_sdk_worker` publish 后自动触发 [`golden-verify`](.github/workflows/golden-verify.yml)
+- **BOR1 探针**（实调用，非 CI）：`POST /internal/v1/browser-cases/{markdown-example|markdown-hn|pdf-html|screenshot-example}`，Bearer `RULES_ADMIN_TOKEN`；经 `SVC_BROWSER_RUN` 调 browser-run，**不绑** `[browser]`；TOKEN 用 Worker 级 `secret put`（公开仓不写 Secrets Store，见 [docs/previews.md](docs/previews.md)）
 
 ## 本地
 

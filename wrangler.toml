@@ -4,7 +4,6 @@ compatibility_date = "2026-10-01"
 # 生产路由走自定义域；Preview 见 [previews] 与 docs/previews.md
 workers_dev = false
 
-# Source maps: remap uncaught exception stacks in Workers Logs / Tail (WW-26)
 upload_source_maps = true
 
 [observability]
@@ -13,9 +12,12 @@ enabled = true
 [observability.traces]
 enabled = true
 
-# Worker Previews（Wrangler ≥ 4.135）：非生产隔离环境；D1/KV 接入时在此覆盖预发 id
+# BOR1 账号级 Browser 网关（mok1 不绑 [browser]）
+# 公开仓不写 [[secrets_store_secrets]]；TOKEN 用 Worker 级 secret put，见 docs/previews.md
+[[services]]
+binding = "SVC_BROWSER_RUN"
+service = "browser-run"
 
-# ...
 [previews.observability.logs]
 enabled = true
 head_sampling_rate = 1
@@ -26,5 +28,3 @@ persist = true
 enabled = true
 head_sampling_rate = 1
 persist = true
-# ...
-
