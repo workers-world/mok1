@@ -9,6 +9,7 @@
 | `llm-gateway/` | llm-gateway-worker | `ai/gateway` |
 | `email-rule/` | email-rule-worker | `circuit-breaker`, `ai/client` |
 | `invest-rss/` | invest-rss-worker | `ai/client` |
+| `browser-run/` | browser-run（BOR1） | `browser`（mock，不烧真实 Browser） |
 | `advisor-worker/` | （二期扩展占位） | `ai/client` |
 | `decision-desk/` | （二期扩展占位） | `desk/reject-reason` |
 

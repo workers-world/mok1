@@ -22,3 +22,10 @@ cases:
     file: invest-rss/chat-invest-client.test.ts
     source: invest-rss-worker LLM enrichment
     priority: P1
+
+  - id: browser-run.runBrowserAction
+    worker: browser-run
+    sdk_modules: [browser]
+    file: browser-run/runBrowserAction.test.ts
+    source: framework_sdk_worker/browser → browser-run /internal/v1/*
+    priority: P1

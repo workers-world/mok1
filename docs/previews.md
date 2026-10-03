@@ -1,6 +1,6 @@
 # mok1 — Worker Previews 试点
 
-单 Worker、无危险 Service Binding 热路径，用于 Agent ADLC 的 **Preview outcome**（见根 [docs/eval-regression-suites.md](../../docs/eval-regression-suites.md)）。
+单 Worker 冒烟靶 + SDK 黄金案例宿主。现经 `SVC_BROWSER_RUN` 调生产 BOR1（Browser 有配额）：探针 `POST /internal/v1/browser-cases/:id` 须 `RULES_ADMIN_TOKEN`，固定案例白名单，勿开放任意 URL。用于 Agent ADLC 的 **Preview outcome**（见根 [docs/eval-regression-suites.md](../../docs/eval-regression-suites.md)）。
 
 ## 要求
 
@@ -20,6 +20,9 @@ Build command：默认 **`npm ci`**（本仓无单独 build 步）。
 勿在 Dashboard 写裸 `npx wrangler deploy` / `npx cf deploy`（换 CLI 时只改仓内 `deploy:upload`）。
 
 成功后对 `GET {preview}/health` 冒烟（`{ "ok": true, "worker": "mok1" }`）。
+
+
+本地：`.dev.vars`（gitignore）同名键。缺 token 时探针返回 401 / SDK `failReason=config`，不会静默打 BOR1。
 
 ## 自定义域 + Access
 
