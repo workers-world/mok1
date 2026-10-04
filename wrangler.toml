@@ -6,6 +6,9 @@ workers_dev = false
 
 upload_source_maps = true
 
+[placement]
+mode = "smart"
+
 [observability]
 enabled = true
 
