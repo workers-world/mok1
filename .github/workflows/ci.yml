@@ -4,6 +4,7 @@ name: CI
 # 前置：Org Secret GHA_TOKEN（PAT repo）；向 worker-ci 显式传递其 nested 链消费的最小 secret 集
 # WW-148: npm ci cache measurement sample 1/3 (no-op comment)
 # WW-148: npm ci cache measurement sample 2/3 (no-op comment)
+# WW-148: npm ci cache measurement sample 3/3 (no-op comment)
 on:
   push:
     branches: ["dev_*"]
