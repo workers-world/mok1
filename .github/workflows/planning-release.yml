@@ -1,6 +1,5 @@
 # Planning 发版 workflow（由 deploy-tracker Sequence dispatch）
-# 冒烟试点：mok1（无 build 步骤，直接 versions upload/deploy）
-# deploy/upload：用 org 级 secret DEPLOY_ADMIN_TOKEN 向平台 resolve，不信任 inputs.version_tag
+# 冒烟试点：mok1 — 薄封装，逻辑在 worker-actions reusable planning-release
 name: Planning Release
 
 on:
@@ -30,113 +29,26 @@ on:
         description: 迭代内 repo_key（resolve 必填）
         required: false
 
+permissions: {}
+
 concurrency:
   group: planning-release-${{ github.repository }}
   cancel-in-progress: false
 
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
+  release:
     permissions:
       contents: read
-    outputs:
-      checkout_ref: ${{ steps.resolve.outputs.checkout_ref }}
-      tag_name: ${{ steps.resolve.outputs.tag_name }}
-      cf_version_id: ${{ steps.resolve.outputs.cf_version_id }}
-    env:
-      DEPLOY_TRACKER_BASE: https://deploy.mailworld.uk
-    steps:
-      - name: Resolve release from platform
-        id: resolve
-        env:
-          DEPLOY_ADMIN_TOKEN: ${{ secrets.DEPLOY_ADMIN_TOKEN }}
-          MODE: ${{ inputs.mode }}
-          VERSION_ID: ${{ inputs.planning_version_id }}
-          REPO_KEY: ${{ inputs.planning_repo_key }}
-        run: |
-          set -euo pipefail
-          if [ -z "$REPO_KEY" ]; then
-            REPO_KEY="${GITHUB_REPOSITORY##*/}"
-          fi
-          if [ -z "${DEPLOY_ADMIN_TOKEN:-}" ]; then
-            echo "DEPLOY_ADMIN_TOKEN 未配置（请在 org Actions secrets 设置）" >&2
-            exit 1
-          fi
-          if [ -z "$VERSION_ID" ]; then
-            echo "planning_version_id 必填" >&2
-            exit 1
-          fi
-          URL="${DEPLOY_TRACKER_BASE}/v1/planning/gha/resolve-release?version_id=$(printf %s "$VERSION_ID" | jq -sRr @uri)&repo_key=$(printf %s "$REPO_KEY" | jq -sRr @uri)&mode=$(printf %s "$MODE" | jq -sRr @uri)"
-          RESP=$(curl -fsS -H "Authorization: Bearer ${DEPLOY_ADMIN_TOKEN}" "$URL")
-          echo "$RESP" | jq .
-          echo "checkout_ref=$(echo "$RESP" | jq -r '.checkout_ref')" >> "$GITHUB_OUTPUT"
-          echo "tag_name=$(echo "$RESP" | jq -r '.tag_name // empty')" >> "$GITHUB_OUTPUT"
-          echo "cf_version_id=$(echo "$RESP" | jq -r '.cf_version_id // empty')" >> "$GITHUB_OUTPUT"
-          echo "sha=$(echo "$RESP" | jq -r '.sha // empty')" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ steps.resolve.outputs.checkout_ref }}
-          persist-credentials: false
-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: "22"
-          cache: npm
-
-      - run: npm ci
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: mok1-workspace
-          path: |
-            .
-            !.git
-
-  publish:
-    needs: prepare
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ needs.prepare.outputs.checkout_ref }}
-          persist-credentials: false
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: mok1-workspace
-
-      - name: Versions upload (test)
-        if: inputs.mode == 'upload'
-        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3.15.0
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: versions upload --tag ${{ github.sha }}
-
-      - name: Versions deploy (production)
-        if: inputs.mode == 'deploy'
-        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3.15.0
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: versions deploy ${{ needs.prepare.outputs.cf_version_id }}@100% -y
-
-      - name: Summary
-        env:
-          MODE: ${{ inputs.mode }}
-          CHECKOUT_REF: ${{ needs.prepare.outputs.checkout_ref }}
-          TAG_NAME: ${{ needs.prepare.outputs.tag_name }}
-          CF_VERSION: ${{ needs.prepare.outputs.cf_version_id }}
-          PLANNING_STEP_ID: ${{ inputs.planning_step_id }}
-          PLANNING_VERSION_ID: ${{ inputs.planning_version_id }}
-        run: |
-          echo "### Planning Release (mok1)" >> "$GITHUB_STEP_SUMMARY"
-          echo "- mode: ${MODE}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- checkout: ${CHECKOUT_REF}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- tag: ${TAG_NAME}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- cf_version: ${CF_VERSION}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- step: ${PLANNING_STEP_ID}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- version: ${PLANNING_VERSION_ID}" >> "$GITHUB_STEP_SUMMARY"
+    uses: workers-world/worker-actions/.github/workflows/planning-release.yml@actions/v0.2.34
+    secrets: inherit
+    with:
+      mode: ${{ inputs.mode }}
+      git_ref: ${{ inputs.git_ref }}
+      version_tag: ${{ inputs.version_tag }}
+      cf_version_id: ${{ inputs.cf_version_id }}
+      planning_step_id: ${{ inputs.planning_step_id }}
+      planning_version_id: ${{ inputs.planning_version_id }}
+      planning_repo_key: ${{ inputs.planning_repo_key }}
+      resolve_from_platform: true
+      run_build_on_upload: false
+      summary_label: mok1

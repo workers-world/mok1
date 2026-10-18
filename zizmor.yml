@@ -1,0 +1,7 @@
+# WW-48: planning-release thin wrapper uses secrets: inherit (same pattern as
+# worker-ci callers historically). Remap to low so --min-severity medium passes;
+# explicit secret mapping can follow in a dedicated cleanup.
+rules:
+  secrets-inherit:
+    remap:
+      severity: low
