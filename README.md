@@ -37,3 +37,5 @@ Wrangler → `cf` 试点与 **Builds 门户脚本**（`deploy:remote` / `preview
 ## 分支
 
 开发轨：`dev_00_02_00` → Release PR → `master`。
+
+<!-- rev1 retest 20261020-193023 (new prod build) -->
