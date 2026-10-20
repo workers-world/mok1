@@ -37,3 +37,5 @@ Wrangler → `cf` 试点与 **Builds 门户脚本**（`deploy:remote` / `preview
 ## 分支
 
 开发轨：`dev_00_02_00` → Release PR → `master`。
+
+<!-- rev1 connectivity probe 2026-10-20 16:45:15 Asia/Shanghai — safe to close -->
