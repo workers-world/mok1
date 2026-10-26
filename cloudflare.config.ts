@@ -1,4 +1,4 @@
-import { defineConfig } from "cf/config";
+import { bindings, defineConfig } from "cf/config";
 
 /**
  * mok1 Worker 配置（cf）。
@@ -10,14 +10,12 @@ export default defineConfig((ctx) => {
 	const shared = {
 		name: "mok1",
 		compatibilityDate: "2026-08-04" as const,
+		compatibilityFlags: ["new_module_registry"],
 		entrypoint: "src/index.ts",
 		workersDev: false,
-		services: [
-			{
-				binding: "SVC_BROWSER_RUN",
-				service: "browser-run",
-			},
-		],
+		env: {
+			SVC_BROWSER_RUN: bindings.worker({ worker: "browser-run" }),
+		},
 		// 公开仓不绑 Secrets Store；BROWSER_RUN_AUTH_TOKEN / RULES_ADMIN_TOKEN
 		// 用 Dashboard 或 `wrangler secret put`（见 docs/previews.md）
 	};
