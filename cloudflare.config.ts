@@ -10,6 +10,7 @@ export default defineConfig((ctx) => {
 	const shared = {
 		name: "mok1",
 		compatibilityDate: "2026-08-04" as const,
+		compatibilityFlags: ["new_module_registry"],
 		entrypoint: "src/index.ts",
 		workersDev: false,
 		services: [
