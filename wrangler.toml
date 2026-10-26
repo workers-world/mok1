@@ -1,6 +1,7 @@
 name = "mok1"
 main = "src/index.ts"
 compatibility_date = "2026-10-01"
+compatibility_flags = ["new_module_registry"]
 # 生产路由走自定义域；Preview 见 [previews] 与 docs/previews.md
 workers_dev = false
 
