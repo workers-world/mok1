@@ -39,7 +39,7 @@ jobs:
   release:
     permissions:
       contents: read
-    uses: workers-world/worker-actions/.github/workflows/planning-release.yml@actions/v0.2.41
+    uses: workers-world/worker-actions/.github/workflows/planning-release.yml@actions/v0.2.43
     secrets: inherit
     with:
       mode: ${{ inputs.mode }}
@@ -52,3 +52,4 @@ jobs:
       resolve_from_platform: true
       run_build_on_upload: false
       summary_label: mok1
+
