@@ -32,6 +32,7 @@ name: CI
 # #221 R14 measure sample 2/2 (no-op; pin actions/v0.2.62; correctness_on_builds=true; Builds npm_config_prefer_offline + cache)
 # #221 R14 fault-inject FAULT_INJECT_R14 (Builds-red expected)
 # #221 R14 clear Builds fault-injection (rollback prefer-offline; keep correctness_on_builds)
+# #221 R15 remasure sample 1/2 (no-op; pin actions/v0.2.62; correctness_on_builds=true; prefer-offline absent)
 on:
   push:
     branches: ["dev_*"]
