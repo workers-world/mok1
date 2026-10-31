@@ -1,5 +1,6 @@
 name: CI
 # R13-fault-clear 20261031T052247Z
+# #221 R16 wire CF API primary gate (builds_worker_tag + CLOUDFLARE_* → worker-ci)
 
 # Release PR 模型：push dev_* → verify + 自动开 PR；PR → master 上跑 qodana，全绿 auto-merge。
 # 前置：Org Secret GHA_TOKEN（PAT repo）；向 worker-ci 显式传递其 nested 链消费的最小 secret 集
@@ -63,8 +64,11 @@ jobs:
       RELEASE_BOT_APP_ID: ${{ secrets.RELEASE_BOT_APP_ID }}
       QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
       NOTIFY_GHA_TOKEN: ${{ secrets.NOTIFY_GHA_TOKEN }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     with:
       materialize_sdk: true
       sync_packages_lock: true
       correctness_on_builds: true
-          # measure: #221 R8 clear Builds fault-injection (keep correctness_on_builds)
+      builds_worker_tag: "86995b822f3e436eb7393bbc2bceb348"
+          # measure: #221 R16 CF API primary (builds_worker_tag=external_script_id; CLOUDFLARE_* org secrets)
