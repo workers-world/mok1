@@ -17,6 +17,9 @@ name: CI
 # #221 R10 measure sample 2/2 (no-op; pin actions/v0.2.58; correctness_on_builds=true)
 # #221 R10 fault-inject FAULT_INJECT_R10 (Builds-red; expect fail-closed)
 # #221 R10 clear Builds fault-injection (keep correctness_on_builds)
+# #221 R11 measure sample 1/2 (no-op; pin actions/v0.2.59; correctness_on_builds=true; adaptive builds-gate poll 2→5→10→20s)
+# #221 R11 measure sample 2/2 (no-op; pin actions/v0.2.59; correctness_on_builds=true)
+# #221 R11 measure fire sample 2 @ 1793421679
 # #221 R8 fault-inject Preview Builds red (expect fail-closed)
 on:
   push:
