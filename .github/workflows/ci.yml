@@ -35,6 +35,7 @@ name: CI
 # #221 R15 remasure sample 1/2 (no-op; pin actions/v0.2.62; correctness_on_builds=true; prefer-offline absent)
 # #221 R15 remasure sample 2/2 (no-op; pin actions/v0.2.62; correctness_on_builds=true; prefer-offline absent)
 # #221 R15 fault-inject FAULT_INJECT_R15 via package.json check/test (Builds-red; expect fail-closed; API lacked workers-ci.write)
+# #221 R15 clear Builds fault-injection (restore package.json check/test; keep correctness_on_builds)
 on:
   push:
     branches: ["dev_*"]
