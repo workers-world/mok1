@@ -1,4 +1,5 @@
 name: CI
+# R13-fault-clear 20261031T052247Z
 
 # Release PR 模型：push dev_* → verify + 自动开 PR；PR → master 上跑 qodana，全绿 auto-merge。
 # 前置：Org Secret GHA_TOKEN（PAT repo）；向 worker-ci 显式传递其 nested 链消费的最小 secret 集
