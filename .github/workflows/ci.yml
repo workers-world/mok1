@@ -43,3 +43,4 @@ jobs:
       materialize_sdk: true
       sync_packages_lock: true
       correctness_on_builds: true
+          # measure: #221 R8 clear Builds fault-injection (keep correctness_on_builds)
