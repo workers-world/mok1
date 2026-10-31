@@ -12,7 +12,8 @@ name: CI
 # #221 R8 measure sample 1/2 (no-op; pin actions/v0.2.56; correctness_on_builds=true; skip GHA npm ci)
 # #221 R8 measure sample 2/2 (no-op; pin actions/v0.2.56; correctness_on_builds=true; skip GHA npm ci)
 # #221 R9 measure sample 1/2 (no-op; pin actions/v0.2.57; correctness_on_builds=true; builds-gate 5s poll)
-# #221 R9 measure sample 2/2 (no-op; pin actions/v0.2.57; correctness_on_builds=true; builds-gate 5s poll)
+# #221 R9 measure sample 2/2
+# #221 R9 fault-inject (FAULT_INJECT_R9; Builds-red fail-closed) (no-op; pin actions/v0.2.57; correctness_on_builds=true; builds-gate 5s poll)
 # #221 R8 fault-inject Preview Builds red (expect fail-closed)
 on:
   push:
