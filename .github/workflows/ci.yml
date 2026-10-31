@@ -37,7 +37,3 @@ jobs:
     with:
       materialize_sdk: true
       sync_packages_lock: true
-      # #221 R7 fault-injection: expect builds-correctness-gate FAIL (no Preview Builds on Release PR)
-      correctness_on_builds: true
-      builds_check_context: "Workers Builds: mok1"
-      builds_gate_timeout_minutes: 1
