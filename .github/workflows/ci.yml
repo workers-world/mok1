@@ -7,6 +7,7 @@ name: CI
 # WW-148: npm ci cache measurement sample 3/3 (no-op comment)
 # #221 R7 measure sample 1/2 (no-op; pin actions/v0.2.55; correctness_on_builds=false)
 # #221 R7 measure sample 2/2 (no-op; pin actions/v0.2.55; correctness_on_builds=false)
+# #221 R7b measure sample 1/2 (no-op; pin actions/v0.2.55; correctness_on_builds=true; Preview Builds on)
 on:
   push:
     branches: ["dev_*"]
@@ -37,3 +38,4 @@ jobs:
     with:
       materialize_sdk: true
       sync_packages_lock: true
+      correctness_on_builds: true
