@@ -1,4 +1,5 @@
 name: CI
+# #221 WW-521: pin back to actions/v0.2.59 (R11 freeze; drop R12–R17 hotfix pins)
 # R13-fault-clear 20261031T052247Z
 # #221 R17: pin actions/v0.2.64; remove obsolete builds_worker_tag + CLOUDFLARE_* (gate is GH Check primary again)
 # #221 R16 measure sample 2/2 (no-op; pin actions/v0.2.63; CF API primary; correctness_on_builds=true)
@@ -58,7 +59,7 @@ jobs:
       issues: write
       actions: write
       checks: read
-    uses: workers-world/worker-actions/.github/workflows/worker-ci.yml@actions/v0.2.64
+    uses: workers-world/worker-actions/.github/workflows/worker-ci.yml@actions/v0.2.59
     secrets:
       GHA_TOKEN: ${{ secrets.GHA_TOKEN }}
       RELEASE_BOT_PRIVATE_KEY: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
