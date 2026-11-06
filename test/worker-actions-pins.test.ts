@@ -57,20 +57,37 @@ describe('worker-actions reusable workflow pins', () => {
         }
     });
 
-    it('pin tag resolves on workers-world/worker-actions', () => {
+    it('pin tag resolves on workers-world/worker-actions', ({ skip }) => {
         const pin = collectPins()[0]?.pin;
         expect(pin).toBeTruthy();
 
-        const stdout = execFileSync(
-            'git',
-            [
-                'ls-remote',
-                '--tags',
-                'https://github.com/workers-world/worker-actions.git',
-                `refs/tags/${pin}`,
-            ],
-            { encoding: 'utf8', timeout: 60_000 },
-        );
+        // Live probe: keep when GitHub is reachable; skip (don't fail) when
+        // offline, proxied, GitHub is down, or worker-actions is private to
+        // this token (#184). Empty stdout with exit 0 still fails — that means
+        // the pin tag is missing on a reachable repo.
+        let stdout: string;
+        try {
+            stdout = execFileSync(
+                'git',
+                [
+                    'ls-remote',
+                    '--tags',
+                    'https://github.com/workers-world/worker-actions.git',
+                    `refs/tags/${pin}`,
+                ],
+                {
+                    encoding: 'utf8',
+                    timeout: 15_000,
+                    env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
+                },
+            );
+        } catch (err) {
+            const detail = err instanceof Error ? err.message : String(err);
+            skip(
+                `git ls-remote unavailable (offline, restricted proxy, outage, or no access to worker-actions): ${detail.slice(0, 160)}`,
+            );
+            return;
+        }
         expect(stdout.trim().length, `git ls-remote found no refs/tags/${pin}`).toBeGreaterThan(0);
     });
 });
