@@ -1,3 +1,7 @@
 {
-  "type": "worker"
+  "type": "worker",
+  "deps": [
+    "framework_sdk_worker",
+    "worker-actions"
+  ]
 }
